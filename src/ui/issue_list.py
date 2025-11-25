@@ -76,19 +76,58 @@ class IssueListFrame(ctk.CTkFrame):
 
         # Meta
         meta_text = f"Created by {issue.author['username']} • {issue.updated_at[:10]}"
+        if issue.assignee:
+            meta_text += f" • Assigned to {issue.assignee['username']}"
+        
         meta_label = ctk.CTkLabel(card, text=meta_text, font=("Roboto", 12), text_color="gray", anchor="w")
         meta_label.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="w")
 
-    def open_create_dialog(self):
-        CreateIssueDialog(self, self.on_issue_created)
+        # Labels
+        if issue.labels:
+            labels_text = "Labels: " + ", ".join(issue.labels)
+            labels_label = ctk.CTkLabel(card, text=labels_text, font=("Roboto", 11), text_color="gray70", anchor="w")
+            labels_label.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="w")
 
-    def on_issue_created(self, title, description, dialog):
-        success, result = self.fetcher.create_issue(self.project.id, title, description)
+        # Edit Button
+        edit_btn = ctk.CTkButton(card, text="Edit", width=60, height=24, font=("Roboto", 12), command=lambda i=issue: self.open_edit_dialog(i))
+        edit_btn.grid(row=0, column=1, rowspan=3, padx=10, pady=10, sticky="e")
+
+    def open_create_dialog(self):
+        CreateIssueDialog(self, self.fetcher, self.project.id, self.on_issue_saved)
+
+    def open_edit_dialog(self, issue):
+        CreateIssueDialog(self, self.fetcher, self.project.id, self.on_issue_saved, issue=issue)
+
+    def on_issue_saved(self, title, description, assignee_id, labels, milestone_id, dialog, issue=None):
+        # Determine if creating or updating
+        if issue:
+            # Update
+            success, result = self.fetcher.update_issue(
+                self.project.id, 
+                issue.iid, 
+                title=title, 
+                description=description,
+                assignee_id=assignee_id,
+                labels=labels,
+                milestone_id=milestone_id
+            )
+            action = "Updated"
+        else:
+            # Create
+            success, result = self.fetcher.create_issue(
+                self.project.id, 
+                title, 
+                description,
+                assignee_id=assignee_id,
+                labels=labels,
+                milestone_id=milestone_id
+            )
+            action = "Created"
+            
         dialog.destroy()
         
         if success:
-            print(f"Created issue: {result.title}")
+            print(f"{action} issue: {result.title}")
             self.refresh_issues()
         else:
-            print(f"Failed to create issue: {result}")
-            # Ideally show an error dialog here
+            print(f"Failed to {action.lower()} issue: {result}")
