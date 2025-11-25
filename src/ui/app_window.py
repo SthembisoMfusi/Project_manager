@@ -3,6 +3,7 @@ from src.ui.login_frame import LoginFrame
 from src.ui.dashboard import Dashboard
 from src.utils.config import load_token, load_app_state, save_app_state, clear_token
 from src.api.client import GitLabClient
+from src.ui.project_view import ProjectView
 
 class App(ctk.CTk):
     def __init__(self):
@@ -68,10 +69,18 @@ class App(ctk.CTk):
             on_exit=self.exit_app
         )
 
+
     def on_project_selected(self, project):
-        # Placeholder for Phase 3
         print(f"Opening project: {project.name}")
-        # Here we would switch to the ProjectView frame
+        self.show_project_view(project)
+
+    def show_project_view(self, project):
+        self.switch_frame(
+            ProjectView,
+            gl_client=self.gl_client,
+            project=project,
+            on_back=self.show_dashboard
+        )
         
     def logout(self):
         clear_token()
