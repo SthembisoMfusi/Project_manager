@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from src.ui.login_frame import LoginFrame
-from src.utils.config import load_token
+from src.ui.dashboard import Dashboard
+from src.utils.config import load_token, load_app_state, save_app_state, clear_token
 from src.api.client import GitLabClient
 
 class App(ctk.CTk):
@@ -8,29 +9,36 @@ class App(ctk.CTk):
         super().__init__()
 
         self.title("GitLab Manager")
-        self.geometry("900x600")
+        self.geometry("1000x700")
         
         # Grid configuration
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         self.gl_client = None
+        self.current_frame = None
 
         # Check for existing token
-        saved_token = load_token()
+        saved_token, saved_url = load_token()
         if saved_token:
-            self.try_auto_login(saved_token)
+            self.try_auto_login(saved_token, saved_url)
         else:
             self.show_login()
 
-    def show_login(self):
-        self.login_frame = LoginFrame(self, self.on_login_success)
-        self.login_frame.grid(row=0, column=0, sticky="nsew")
+    def switch_frame(self, frame_class, **kwargs):
+        if self.current_frame:
+            self.current_frame.grid_forget()
+            self.current_frame.destroy() # Clean up
 
-    def try_auto_login(self, token):
+        self.current_frame = frame_class(self, **kwargs)
+        self.current_frame.grid(row=0, column=0, sticky="nsew")
+
+    def show_login(self):
+        self.switch_frame(LoginFrame, on_login_success=self.on_login_success)
+
+    def try_auto_login(self, token, url):
         # Show a loading screen or just try to connect
-        # For now, we'll just try to connect synchronously (could be improved with a splash screen)
-        client = GitLabClient(token)
+        client = GitLabClient(token, url=url)
         success, message = client.authenticate()
         
         if success:
@@ -41,12 +49,34 @@ class App(ctk.CTk):
 
     def on_login_success(self, gl_client):
         self.gl_client = gl_client
-        if hasattr(self, 'login_frame'):
-            self.login_frame.grid_forget()
         
+        # Check for last active project
+        last_project_id = load_app_state("last_project_id")
+        if last_project_id:
+            print(f"Found last active project ID: {last_project_id}")
+            # TODO: In Phase 3, we might jump straight to the project view
+            # For now, we go to dashboard to allow selection
+            
         self.show_dashboard()
 
     def show_dashboard(self):
-        # Placeholder for Dashboard
-        self.dashboard_label = ctk.CTkLabel(self, text=f"Welcome, {self.gl_client.user.username}!\nDashboard coming soon...", font=("Roboto", 20))
-        self.dashboard_label.grid(row=0, column=0, sticky="nsew")
+        self.switch_frame(
+            Dashboard, 
+            gl_client=self.gl_client, 
+            on_project_selected=self.on_project_selected,
+            on_logout=self.logout,
+            on_exit=self.exit_app
+        )
+
+    def on_project_selected(self, project):
+        # Placeholder for Phase 3
+        print(f"Opening project: {project.name}")
+        # Here we would switch to the ProjectView frame
+        
+    def logout(self):
+        clear_token()
+        self.gl_client = None
+        self.show_login()
+
+    def exit_app(self):
+        self.destroy()
