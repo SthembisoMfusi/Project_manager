@@ -61,3 +61,55 @@ def test_update_issue(mock_client):
     assert mock_issue.title == "Updated Title"
     assert mock_issue.labels == ["feature"]
     mock_issue.save.assert_called_once()
+
+def test_create_label(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    mock_label = MagicMock()
+    mock_label.name = "Test Label"
+    mock_project.labels.create.return_value = mock_label
+    
+    success, label = fetcher.create_label(1, "Test Label", "#FF0000")
+    
+    assert success is True
+    assert label.name == "Test Label"
+    mock_project.labels.create.assert_called_with({'name': "Test Label", 'color': "#FF0000"})
+
+def test_delete_label(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    
+    success, _ = fetcher.delete_label(1, "Test Label")
+    
+    assert success is True
+    mock_project.labels.delete.assert_called_with("Test Label")
+
+def test_create_milestone(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    mock_milestone = MagicMock()
+    mock_milestone.title = "v1.0"
+    mock_project.milestones.create.return_value = mock_milestone
+    
+    success, milestone = fetcher.create_milestone(1, "v1.0", "2024-12-31")
+    
+    assert success is True
+    assert milestone.title == "v1.0"
+    mock_project.milestones.create.assert_called_with({'title': "v1.0", 'due_date': "2024-12-31"})
+
+def test_delete_milestone(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    
+    success, _ = fetcher.delete_milestone(1, 123)
+    
+    assert success is True
+    mock_project.milestones.delete.assert_called_with(123)

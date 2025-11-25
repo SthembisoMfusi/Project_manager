@@ -110,3 +110,45 @@ class DataFetcher:
             project = self.gl.projects.get(project_id)
             return project.milestones.list(state='active', all=True)
         except: return []
+
+    def create_label(self, project_id, name, color):
+        """Creates a new label."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            label = project.labels.create({'name': name, 'color': color})
+            return True, label
+        except Exception as e:
+            return False, str(e)
+
+    def delete_label(self, project_id, label_name):
+        """Deletes a label."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            project.labels.delete(label_name)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
+    def create_milestone(self, project_id, title, due_date=None):
+        """Creates a new milestone."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            data = {'title': title}
+            if due_date: data['due_date'] = due_date
+            milestone = project.milestones.create(data)
+            return True, milestone
+        except Exception as e:
+            return False, str(e)
+
+    def delete_milestone(self, project_id, milestone_id):
+        """Deletes a milestone."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            project.milestones.delete(milestone_id)
+            return True, None
+        except Exception as e:
+            return False, str(e)

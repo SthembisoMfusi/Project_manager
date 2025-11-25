@@ -28,6 +28,10 @@ class ManageLabelsDialog(ctk.CTkToplevel):
         self.color_entry = ctk.CTkEntry(self.create_frame, placeholder_text="#FF0000")
         self.color_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
         self.color_entry.insert(0, "#428BCA")
+        self.color_entry.bind("<KeyRelease>", self.update_preview)
+        
+        self.preview_label = ctk.CTkLabel(self.create_frame, text="Preview", text_color="white", fg_color="#428BCA", corner_radius=5)
+        self.preview_label.grid(row=1, column=2, padx=5, pady=5)
         
         self.create_btn = ctk.CTkButton(self.create_frame, text="Create Label", command=self.create_label)
         self.create_btn.grid(row=2, column=0, columnspan=2, pady=10)
@@ -69,6 +73,14 @@ class ManageLabelsDialog(ctk.CTkToplevel):
             del_btn = ctk.CTkButton(frame, text="Delete", width=60, fg_color="#C42B1C", hover_color="#8E1F14", 
                                   command=lambda l=label: self.delete_label(l))
             del_btn.grid(row=0, column=1, padx=5, pady=5)
+
+    def update_preview(self, event=None):
+        color = self.color_entry.get()
+        if len(color) == 7 and color.startswith("#"):
+            try:
+                self.preview_label.configure(fg_color=color)
+            except:
+                pass
 
     def create_label(self):
         name = self.name_entry.get()

@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from src.api.data_fetcher import DataFetcher
 from src.ui.issue_list import IssueListFrame
 from src.ui.manage_labels_dialog import ManageLabelsDialog
 from src.ui.manage_milestones_dialog import ManageMilestonesDialog
@@ -8,6 +9,7 @@ class ProjectView(ctk.CTkFrame):
     def __init__(self, master, gl_client, project, on_back):
         super().__init__(master)
         self.gl_client = gl_client
+        self.fetcher = DataFetcher(gl_client)
         self.project = project
         self.on_back = on_back
 
@@ -52,10 +54,10 @@ class ProjectView(ctk.CTkFrame):
         self.issue_list.grid(row=0, column=0, sticky="nsew")
 
     def open_labels(self):
-        ManageLabelsDialog(self, self.gl_client, self.project.id)
+        ManageLabelsDialog(self, self.fetcher, self.project.id)
 
     def open_milestones(self):
-        ManageMilestonesDialog(self, self.gl_client, self.project.id)
+        ManageMilestonesDialog(self, self.fetcher, self.project.id)
 
     def open_templates(self):
         ManageTemplatesDialog(self)
