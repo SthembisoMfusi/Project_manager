@@ -24,11 +24,14 @@ class Dashboard(ctk.CTkFrame):
         self.title_label.grid(row=0, column=0, padx=20, pady=15)
 
         # Buttons
+        self.refresh_button = ctk.CTkButton(self.header_frame, text="Refresh", command=self.load_projects, width=100)
+        self.refresh_button.grid(row=0, column=2, padx=(0, 10), pady=15)
+
         self.logout_button = ctk.CTkButton(self.header_frame, text="Logout", command=self.on_logout, width=100, fg_color="#555555", hover_color="#333333")
-        self.logout_button.grid(row=0, column=2, padx=(0, 10), pady=15)
+        self.logout_button.grid(row=0, column=3, padx=(0, 10), pady=15)
 
         self.exit_button = ctk.CTkButton(self.header_frame, text="Exit", command=self.on_exit, width=80, fg_color="#C42B1C", hover_color="#8E1F14")
-        self.exit_button.grid(row=0, column=3, padx=(0, 20), pady=15)
+        self.exit_button.grid(row=0, column=4, padx=(0, 20), pady=15)
 
         # --- Project List ---
         self.project_list_frame = ctk.CTkScrollableFrame(self, label_text="Your Projects")

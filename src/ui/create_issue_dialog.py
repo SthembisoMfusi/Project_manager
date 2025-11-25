@@ -10,7 +10,7 @@ class CreateIssueDialog(ctk.CTkToplevel):
         
         # Make it modal
         self.transient(master)
-        self.grab_set()
+        self.after(100, self.grab_set) # Wait for window to be created
         
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
