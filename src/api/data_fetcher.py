@@ -111,12 +111,31 @@ class DataFetcher:
             return project.milestones.list(state='active', all=True)
         except: return []
 
-    def create_label(self, project_id, name, color):
+    def create_label(self, project_id, name, color, description=None):
         """Creates a new label."""
         if not self.gl: return False, "Not connected"
         try:
             project = self.gl.projects.get(project_id)
-            label = project.labels.create({'name': name, 'color': color})
+            data = {'name': name, 'color': color}
+            if description:
+                data['description'] = description
+            label = project.labels.create(data)
+            return True, label
+        except Exception as e:
+            return False, str(e)
+
+    def update_label(self, project_id, label_name, new_name=None, new_color=None, new_description=None):
+        """Updates an existing label."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            label = project.labels.get(label_name)
+            
+            if new_name: label.new_name = new_name
+            if new_color: label.color = new_color
+            if new_description is not None: label.description = new_description
+            
+            label.save()
             return True, label
         except Exception as e:
             return False, str(e)

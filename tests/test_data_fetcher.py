@@ -71,11 +71,27 @@ def test_create_label(mock_client):
     mock_label.name = "Test Label"
     mock_project.labels.create.return_value = mock_label
     
-    success, label = fetcher.create_label(1, "Test Label", "#FF0000")
+    success, label = fetcher.create_label(1, "Test Label", "#FF0000", "A test label")
     
     assert success is True
     assert label.name == "Test Label"
-    mock_project.labels.create.assert_called_with({'name': "Test Label", 'color': "#FF0000"})
+    mock_project.labels.create.assert_called_with({'name': "Test Label", 'color': "#FF0000", 'description': "A test label"})
+
+def test_update_label(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    mock_label = MagicMock()
+    mock_label.name = "Old Name"
+    mock_project.labels.get.return_value = mock_label
+    
+    success, label = fetcher.update_label(1, "Old Name", new_name="New Name", new_description="New Desc")
+    
+    assert success is True
+    assert mock_label.new_name == "New Name"
+    assert mock_label.description == "New Desc"
+    mock_label.save.assert_called_once()
 
 def test_delete_label(mock_client):
     fetcher = DataFetcher(mock_client)
