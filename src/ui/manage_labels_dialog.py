@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import threading
+from tkinter import colorchooser
 
 class ManageLabelsDialog(ctk.CTkToplevel):
     def __init__(self, master, fetcher, project_id):
@@ -25,19 +26,28 @@ class ManageLabelsDialog(ctk.CTkToplevel):
         self.name_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
         
         ctk.CTkLabel(self.create_frame, text="Color:").grid(row=1, column=0, padx=5, pady=5)
-        self.color_entry = ctk.CTkEntry(self.create_frame, placeholder_text="#FF0000")
-        self.color_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        
+        # Color input frame
+        self.color_frame = ctk.CTkFrame(self.create_frame, fg_color="transparent")
+        self.color_frame.grid(row=1, column=1, sticky="ew")
+        self.color_frame.grid_columnconfigure(0, weight=1)
+        
+        self.color_entry = ctk.CTkEntry(self.color_frame, placeholder_text="#FF0000")
+        self.color_entry.grid(row=0, column=0, sticky="ew", padx=(5, 5), pady=5)
         self.color_entry.insert(0, "#428BCA")
         self.color_entry.bind("<KeyRelease>", self.update_preview)
+        
+        self.pick_btn = ctk.CTkButton(self.color_frame, text="Pick", width=50, command=self.pick_color)
+        self.pick_btn.grid(row=0, column=1, padx=5, pady=5)
         
         self.preview_label = ctk.CTkLabel(self.create_frame, text="Preview", text_color="white", fg_color="#428BCA", corner_radius=5)
         self.preview_label.grid(row=1, column=2, padx=5, pady=5)
         
         self.create_btn = ctk.CTkButton(self.create_frame, text="Create Label", command=self.create_label)
-        self.create_btn.grid(row=2, column=0, columnspan=2, pady=10)
+        self.create_btn.grid(row=2, column=0, columnspan=3, pady=10)
         
         self.close_btn = ctk.CTkButton(self.create_frame, text="Close", fg_color="gray", command=self.destroy)
-        self.close_btn.grid(row=3, column=0, columnspan=2, pady=(0, 10))
+        self.close_btn.grid(row=3, column=0, columnspan=3, pady=(0, 10))
 
         # List
         ctk.CTkLabel(self, text="Existing Labels", font=("Roboto", 14, "bold")).grid(row=1, column=0, sticky="w", padx=10)
@@ -73,6 +83,13 @@ class ManageLabelsDialog(ctk.CTkToplevel):
             del_btn = ctk.CTkButton(frame, text="Delete", width=60, fg_color="#C42B1C", hover_color="#8E1F14", 
                                   command=lambda l=label: self.delete_label(l))
             del_btn.grid(row=0, column=1, padx=5, pady=5)
+
+    def pick_color(self):
+        color = colorchooser.askcolor(title="Choose Label Color")[1]
+        if color:
+            self.color_entry.delete(0, "end")
+            self.color_entry.insert(0, color)
+            self.update_preview()
 
     def update_preview(self, event=None):
         color = self.color_entry.get()
