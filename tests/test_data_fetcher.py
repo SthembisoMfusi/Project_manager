@@ -1,0 +1,63 @@
+import pytest
+from unittest.mock import MagicMock
+from src.api.data_fetcher import DataFetcher
+
+@pytest.fixture
+def mock_client():
+    client = MagicMock()
+    client.gl = MagicMock()
+    return client
+
+def test_fetch_projects(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    # Mock response
+    mock_project = MagicMock()
+    mock_project.name = "Test Project"
+    mock_client.gl.projects.list.return_value = [mock_project]
+    
+    projects = fetcher.fetch_projects(search="Test", page=1)
+    
+    assert len(projects) == 1
+    assert projects[0].name == "Test Project"
+    mock_client.gl.projects.list.assert_called_once()
+    
+    # Check call args
+    call_kwargs = mock_client.gl.projects.list.call_args.kwargs
+    assert call_kwargs['search'] == "Test"
+    assert call_kwargs['page'] == 1
+
+def test_create_issue(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    mock_issue = MagicMock()
+    mock_issue.title = "New Issue"
+    mock_project.issues.create.return_value = mock_issue
+    
+    success, issue = fetcher.create_issue(1, "New Issue", "Desc", assignee_id=10, labels=["bug"])
+    
+    assert success is True
+    assert issue.title == "New Issue"
+    
+    mock_project.issues.create.assert_called_once()
+    call_args = mock_project.issues.create.call_args[0][0]
+    assert call_args['title'] == "New Issue"
+    assert call_args['assignee_ids'] == [10]
+    assert call_args['labels'] == ["bug"]
+
+def test_update_issue(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    mock_issue = MagicMock()
+    mock_project.issues.get.return_value = mock_issue
+    
+    success, issue = fetcher.update_issue(1, 100, title="Updated Title", labels=["feature"])
+    
+    assert success is True
+    assert mock_issue.title == "Updated Title"
+    assert mock_issue.labels == ["feature"]
+    mock_issue.save.assert_called_once()

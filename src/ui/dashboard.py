@@ -10,10 +10,14 @@ class Dashboard(ctk.CTkFrame):
         self.on_logout = on_logout
         self.on_exit = on_exit
         self.fetcher = DataFetcher(gl_client)
+        
+        self.current_page = 1
+        self.per_page = 10
+        self.search_query = ""
 
         # Layout configuration
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1) # Project list area
+        self.grid_rowconfigure(2, weight=1) # Project list area
 
         # --- Header ---
         self.header_frame = ctk.CTkFrame(self, height=60, corner_radius=0)
@@ -24,25 +28,73 @@ class Dashboard(ctk.CTkFrame):
         self.title_label.grid(row=0, column=0, padx=20, pady=15)
 
         # Buttons
-        self.refresh_button = ctk.CTkButton(self.header_frame, text="Refresh", command=self.load_projects, width=100)
-        self.refresh_button.grid(row=0, column=2, padx=(0, 10), pady=15)
-
         self.logout_button = ctk.CTkButton(self.header_frame, text="Logout", command=self.on_logout, width=100, fg_color="#555555", hover_color="#333333")
         self.logout_button.grid(row=0, column=3, padx=(0, 10), pady=15)
 
         self.exit_button = ctk.CTkButton(self.header_frame, text="Exit", command=self.on_exit, width=80, fg_color="#C42B1C", hover_color="#8E1F14")
         self.exit_button.grid(row=0, column=4, padx=(0, 20), pady=15)
 
+        # --- Search Bar ---
+        self.search_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.search_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(20, 0))
+        self.search_frame.grid_columnconfigure(0, weight=1)
+        
+        self.search_entry = ctk.CTkEntry(self.search_frame, placeholder_text="Search projects...")
+        self.search_entry.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+        self.search_entry.bind("<Return>", lambda e: self.perform_search())
+        
+        self.search_btn = ctk.CTkButton(self.search_frame, text="Search", width=80, command=self.perform_search)
+        self.search_btn.grid(row=0, column=1)
+
         # --- Project List ---
         self.project_list_frame = ctk.CTkScrollableFrame(self, label_text="Your Projects")
-        self.project_list_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+        self.project_list_frame.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
         self.project_list_frame.grid_columnconfigure(0, weight=1)
+
+        # --- Pagination ---
+        self.pagination_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.pagination_frame.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 20))
+        self.pagination_frame.grid_columnconfigure(1, weight=1)
+        
+        self.prev_btn = ctk.CTkButton(self.pagination_frame, text="Previous", width=80, command=self.prev_page, state="disabled")
+        self.prev_btn.grid(row=0, column=0)
+        
+        self.page_label = ctk.CTkLabel(self.pagination_frame, text=f"Page {self.current_page}")
+        self.page_label.grid(row=0, column=1)
+        
+        self.next_btn = ctk.CTkButton(self.pagination_frame, text="Next", width=80, command=self.next_page)
+        self.next_btn.grid(row=0, column=2)
 
         self.load_projects()
 
+    def perform_search(self):
+        self.search_query = self.search_entry.get().strip()
+        self.current_page = 1
+        self.load_projects()
+
+    def prev_page(self):
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.load_projects()
+
+    def next_page(self):
+        self.current_page += 1
+        self.load_projects()
+
     def load_projects(self):
-        projects = self.fetcher.fetch_projects()
+        # Clear list
+        for widget in self.project_list_frame.winfo_children():
+            widget.destroy()
+            
+        projects = self.fetcher.fetch_projects(search=self.search_query, page=self.current_page, per_page=self.per_page)
         
+        # Update Pagination UI
+        self.page_label.configure(text=f"Page {self.current_page}")
+        self.prev_btn.configure(state="normal" if self.current_page > 1 else "disabled")
+        
+        # If fewer projects than per_page, disable next (simple heuristic)
+        self.next_btn.configure(state="normal" if len(projects) == self.per_page else "disabled")
+
         if not projects:
             no_projects_label = ctk.CTkLabel(self.project_list_frame, text="No projects found.")
             no_projects_label.grid(row=0, column=0, pady=20)

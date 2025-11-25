@@ -5,7 +5,7 @@ class DataFetcher:
         self.gl_client = gl_client
         self.gl = gl_client.gl
 
-    def fetch_projects(self):
+    def fetch_projects(self, search=None, page=1, per_page=20):
         """Fetches projects that the user is a member of."""
         if not self.gl:
             return []
@@ -15,7 +15,18 @@ class DataFetcher:
             # simple=True returns lighter objects (faster)
             # order_by='updated_at' to show recently active projects first
             # get_all=False to suppress pagination warning (we are setting per_page)
-            return self.gl.projects.list(membership=True, simple=True, order_by='updated_at', per_page=50, get_all=False)
+            kwargs = {
+                'membership': True, 
+                'simple': True, 
+                'order_by': 'updated_at', 
+                'per_page': per_page, 
+                'page': page,
+                'get_all': False
+            }
+            if search:
+                kwargs['search'] = search
+                
+            return self.gl.projects.list(**kwargs)
         except Exception as e:
             print(f"Error fetching projects: {e}")
             return []

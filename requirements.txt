@@ -3,3 +3,5 @@ python-gitlab
 pillow
 python-dotenv
 pyinstaller
+pytest
+pytest-mock
