@@ -3,6 +3,7 @@ from src.api.data_fetcher import DataFetcher
 from src.ui.issue_list import IssueListFrame
 from src.ui.manage_labels_dialog import ManageLabelsDialog
 from src.ui.manage_milestones_dialog import ManageMilestonesDialog
+from src.ui.manage_boards_dialog import ManageBoardsDialog
 from src.ui.manage_templates_dialog import ManageTemplatesDialog
 
 class ProjectView(ctk.CTkFrame):
@@ -34,8 +35,11 @@ class ProjectView(ctk.CTkFrame):
         self.mil_btn = ctk.CTkButton(self.sidebar, text="Manage Milestones", command=self.open_milestones, width=180, fg_color="transparent", border_width=1, text_color=("gray10", "gray90"))
         self.mil_btn.grid(row=3, column=0, padx=10, pady=5)
 
+        self.boards_btn = ctk.CTkButton(self.sidebar, text="Manage Boards", command=self.open_boards, width=180, fg_color="transparent", border_width=1, text_color=("gray10", "gray90"))
+        self.boards_btn.grid(row=4, column=0, padx=10, pady=5)
+
         self.tpl_btn = ctk.CTkButton(self.sidebar, text="Manage Templates", command=self.open_templates, width=180, fg_color="transparent", border_width=1, text_color=("gray10", "gray90"))
-        self.tpl_btn.grid(row=4, column=0, padx=10, pady=5)
+        self.tpl_btn.grid(row=5, column=0, padx=10, pady=5)
         
         self.back_btn = ctk.CTkButton(self.sidebar, text="← Back to Dashboard", command=self.on_back, width=180, fg_color="#C42B1C", hover_color="#8E1F14")
         self.back_btn.grid(row=10, column=0, padx=10, pady=20, sticky="s")
@@ -58,6 +62,9 @@ class ProjectView(ctk.CTkFrame):
 
     def open_milestones(self):
         ManageMilestonesDialog(self, self.fetcher, self.project.id)
+
+    def open_boards(self):
+        ManageBoardsDialog(self, self.fetcher, self.project.id)
 
     def open_templates(self):
         ManageTemplatesDialog(self)

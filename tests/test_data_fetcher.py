@@ -125,7 +125,33 @@ def test_delete_milestone(mock_client):
     mock_project = MagicMock()
     mock_client.gl.projects.get.return_value = mock_project
     
-    success, _ = fetcher.delete_milestone(1, 123)
+    success, msg = fetcher.delete_milestone(1, 123)
     
     assert success is True
     mock_project.milestones.delete.assert_called_with(123)
+
+def test_create_board(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    mock_board = MagicMock()
+    mock_board.name = "Test Board"
+    mock_project.boards.create.return_value = mock_board
+    
+    success, board = fetcher.create_board(1, "Test Board")
+    
+    assert success is True
+    assert board.name == "Test Board"
+    mock_project.boards.create.assert_called_with({'name': "Test Board"})
+
+def test_delete_board(mock_client):
+    fetcher = DataFetcher(mock_client)
+    
+    mock_project = MagicMock()
+    mock_client.gl.projects.get.return_value = mock_project
+    
+    success, msg = fetcher.delete_board(1, 100)
+    
+    assert success is True
+    mock_project.boards.delete.assert_called_with(100)

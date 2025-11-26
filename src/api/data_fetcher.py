@@ -146,7 +146,35 @@ class DataFetcher:
         try:
             project = self.gl.projects.get(project_id)
             project.labels.delete(label_name)
-            return True, None
+            return True, "Label deleted"
+        except Exception as e:
+            return False, str(e)
+
+    def fetch_boards(self, project_id):
+        """Fetches all issue boards for a project."""
+        if not self.gl: return []
+        try:
+            project = self.gl.projects.get(project_id)
+            return project.boards.list()
+        except: return []
+
+    def create_board(self, project_id, name):
+        """Creates a new issue board."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            board = project.boards.create({'name': name})
+            return True, board
+        except Exception as e:
+            return False, str(e)
+
+    def delete_board(self, project_id, board_id):
+        """Deletes an issue board."""
+        if not self.gl: return False, "Not connected"
+        try:
+            project = self.gl.projects.get(project_id)
+            project.boards.delete(board_id)
+            return True, "Board deleted"
         except Exception as e:
             return False, str(e)
 
